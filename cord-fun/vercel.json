@@ -1,0 +1,26 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    {
+      "source": "/faturas/pagar/:codigo",
+      "destination": "/faturas.html"
+    },
+    {
+      "source": "/faturas/extrato",
+      "destination": "/faturas.html"
+    },
+    {
+      "source": "/termos",
+      "destination": "/legal.html"
+    },
+    {
+      "source": "/privacidade",
+      "destination": "/legal.html"
+    },
+    {
+      "source": "/blog/:slug",
+      "destination": "/blog.html"
+    }
+  ]
+}

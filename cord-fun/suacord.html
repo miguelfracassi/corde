@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sua Cord</title>
+<link rel="icon" type="image/png" href="cord.png">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--text:#fff;--muted:#9a9a9a;--line:rgba(255,255,255,.14);--bad:#ff8a8a;--ok:#8bf5c0}
+*{box-sizing:border-box}
+body{margin:0;background:#000;color:#fff;font:400 1rem/1.55 Inter,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
+h1,h2,h3{font-family:'Space Grotesk',sans-serif;font-weight:600;letter-spacing:-.01em;margin:0}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid #fff;outline-offset:3px}
+.wrap{max-width:1100px;margin:0 auto;padding:0 24px}
+.glow{position:fixed;inset:0;z-index:-1;background:radial-gradient(600px 420px at 80% 10%,rgba(255,255,255,.16),transparent 70%),radial-gradient(520px 380px at 5% 70%,rgba(255,255,255,.08),transparent 70%)}
+.glass{background:linear-gradient(145deg,rgba(255,255,255,.1),rgba(255,255,255,.025));border:1px solid var(--line);-webkit-backdrop-filter:blur(22px) saturate(160%);backdrop-filter:blur(22px) saturate(160%);box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 20px 50px rgba(0,0,0,.5)}
+.btn{display:inline-flex;justify-content:center;align-items:center;padding:11px 20px;border-radius:999px;font:600 .92rem Inter,sans-serif;border:1px solid transparent;cursor:pointer;transition:transform .2s,background .2s}
+.btn:hover{transform:translateY(-1px)}
+.btn-solid{background:#fff;color:#000}.btn-solid:hover{background:#e2e2e2}
+.btn-ghost{color:#fff;background:rgba(255,255,255,.07);border-color:var(--line)}.btn-ghost:hover{background:rgba(255,255,255,.14)}
+.btn-danger{color:var(--bad);background:rgba(255,80,80,.08);border-color:rgba(255,138,138,.35)}
+.btn[disabled]{opacity:.5;pointer-events:none}
+nav.top{display:flex;align-items:center;justify-content:space-between;margin:12px auto;max-width:1100px;padding:9px 12px 9px 20px;border-radius:999px}
+.brand{display:flex;align-items:center;gap:10px;font:600 1.05rem 'Space Grotesk',sans-serif}.brand img{height:20px}
+[hidden]{display:none!important}
+
+.land{display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center;padding:70px 0}
+@media(max-width:900px){.land{grid-template-columns:1fr;padding:40px 0}}
+.kicker{color:var(--muted);font-size:.92rem;margin-bottom:14px}
+.land h1{font-size:clamp(2.1rem,4.6vw,3.4rem);line-height:1.06;max-width:14ch;font-weight:700}
+.lede{color:var(--muted);font-size:1.05rem;max-width:44ch;margin:18px 0 26px}
+.feat{display:grid;gap:10px;max-width:460px}
+.feat div{padding:14px 18px;border-radius:18px;font-size:.93rem;color:var(--muted)}.feat b{color:#fff;font-weight:600}
+
+.auth{padding:26px;border-radius:26px}
+.tabs{display:flex;gap:4px;padding:4px;border-radius:999px;background:rgba(255,255,255,.06);margin-bottom:20px}
+.tabs button{flex:1;padding:9px;border-radius:999px;border:0;background:none;color:var(--muted);font:500 .92rem Inter,sans-serif;cursor:pointer}
+.tabs button[aria-selected=true]{background:rgba(255,255,255,.15);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.3)}
+label{display:block;font-size:.83rem;color:var(--muted);margin:14px 0 6px}
+input{width:100%;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:rgba(0,0,0,.35);color:#fff;font:inherit}
+input:focus{outline:none;border-color:rgba(255,255,255,.55)}
+form .btn{width:100%;margin-top:20px}
+.msg{min-height:1.3em;font-size:.88rem;margin-top:12px}.msg.err{color:var(--bad)}.msg.ok{color:var(--ok)}
+
+.dash{padding:56px 0 80px}
+.dash h1{font-size:clamp(1.8rem,3.6vw,2.6rem)}
+.welcome{padding:28px;border-radius:24px;margin:22px 0 36px;max-width:680px;color:#d9d9d9}
+.dash h2{font-size:1.4rem;margin:0 0 16px}
+.acc{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+@media(max-width:900px){.acc{grid-template-columns:1fr}}
+.acc .glass{padding:24px;border-radius:22px}.acc h3{font-size:1.05rem}.acc p{color:var(--muted);font-size:.9rem;margin:6px 0 0}
+.who{color:var(--muted);font-size:.9rem;margin-bottom:16px}
+</style>
+</head>
+<body>
+<div class="glow" aria-hidden="true"></div>
+<nav class="top glass">
+  <a href="/" class="brand"><img src="logo.png" alt=""><span>Cord</span></a>
+  <div style="display:flex;gap:10px;align-items:center">
+    <span id="who" class="who" style="margin:0" hidden></span>
+    <button class="btn btn-ghost" id="logout" hidden>Sair</button>
+    <a class="btn btn-ghost" id="back" href="/">Voltar ao site</a>
+  </div>
+</nav>
+
+<main class="wrap">
+  <!-- visitante -->
+  <section class="land" id="land">
+    <div>
+      <div class="kicker">Sua Cord</div>
+      <h1>Tudo na palma da sua mão.</h1>
+      <p class="lede">A Sua Cord é o programa de contas da Cord: entre ou crie a sua conta para acompanhar tudo em um só lugar.</p>
+      <div class="feat">
+        <div class="glass"><b>Faturas</b><br>Gerencie as suas faturas e veja as futuras.</div>
+        <div class="glass"><b>Pagamentos</b><br>Realize pagamentos direto pelo painel.</div>
+        <div class="glass"><b>Minha conta</b><br>Troque senha e e-mail quando quiser.</div>
+      </div>
+    </div>
+    <div class="auth glass">
+      <div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-t="in">Entrar</button><button role="tab" aria-selected="false" data-t="up">Criar conta</button></div>
+      <form id="fin" novalidate>
+        <label for="li-e">E-mail</label><input id="li-e" type="email" autocomplete="email" required>
+        <label for="li-s">Senha</label><input id="li-s" type="password" autocomplete="current-password" required>
+        <button class="btn btn-solid" type="submit">Entrar</button>
+        <button class="btn btn-ghost" type="button" id="forgot" style="margin-top:10px">Esqueci minha senha</button>
+      </form>
+      <form id="fup" novalidate hidden>
+        <label for="su-n">Nome completo</label><input id="su-n" autocomplete="name" required>
+        <label for="su-e">E-mail</label><input id="su-e" type="email" autocomplete="email" required>
+        <label for="su-t">Telefone</label><input id="su-t" type="tel" autocomplete="tel" placeholder="(19) 99999-9999" required>
+        <label for="su-s">Senha</label><input id="su-s" type="password" autocomplete="new-password" minlength="6" required>
+        <label for="su-c">Confirmar senha</label><input id="su-c" type="password" autocomplete="new-password" required>
+        <p style="font-size:.8rem;color:var(--muted);margin:16px 0 0">Ao criar a conta você aceita os <a href="/termos" target="_blank" style="text-decoration:underline">Termos de Serviço</a> e a <a href="/privacidade" target="_blank" style="text-decoration:underline">Política de Privacidade</a>.</p><button class="btn btn-solid" type="submit">Criar conta</button>
+      </form>
+      <div class="msg" id="amsg" role="status"></div>
+    </div>
+  </section>
+
+  <!-- logado -->
+  <section class="dash" id="dash" hidden>
+    <h1 id="hello"></h1>
+    <p><a class="btn btn-solid" href="/faturas">Minhas faturas</a></p>
+    <div class="welcome glass">Seja bem vindo ao seu painel de dashboard da Sua Cord, aqui você pode gerenciar faturas, ver faturas futuras e realizar pagamentos!</div>
+    <h2>Minha Conta</h2>
+    <div class="acc">
+      <form class="glass" id="fmail"><h3>Mudar e-mail</h3><label for="n-e">Novo e-mail</label><input id="n-e" type="email" required><button class="btn btn-ghost" type="submit">Salvar e-mail</button></form>
+      <form class="glass" id="fpass"><h3>Trocar senha</h3><label for="n-s">Nova senha</label><input id="n-s" type="password" minlength="6" autocomplete="new-password" required><label for="n-c">Confirmar nova senha</label><input id="n-c" type="password" autocomplete="new-password" required><button class="btn btn-ghost" type="submit">Salvar senha</button></form>
+      <div class="glass"><h3>Apagar conta</h3><p>Remove a sua conta de forma permanente. Não dá para desfazer.</p><button class="btn btn-danger" id="del" style="width:100%;margin-top:20px">Apagar minha conta</button></div>
+    </div>
+    <div class="msg" id="dmsg" role="status"></div>
+  </section>
+</main>
+
+<script src="/config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+/* ===== CONFIGURE AQUI (Supabase > Project Settings > API). A anon key é pública por design. ===== */
+const SUPABASE_URL=CORD.url,SUPABASE_ANON_KEY=CORD.key;
+
+const $=id=>document.getElementById(id);
+const ok=SUPABASE_URL.startsWith('https://');
+const sb=ok?supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
+function say(id,t,c){const e=$(id);e.textContent=t;e.className='msg '+(c||'')}
+const tr=e=>({'Invalid login credentials':'E-mail ou senha incorretos.','User already registered':'Este e-mail já tem conta.','Email not confirmed':'Confirme o seu e-mail antes de entrar.'}[e.message]||e.message);
+if(!ok)say('amsg','Falta configurar o Supabase (veja o arquivo SUPABASE-SETUP.md).','err');
+
+/* abas */
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));
+  $('fin').hidden=b.dataset.t!=='in';$('fup').hidden=b.dataset.t!=='up';say('amsg','');
+});
+
+/* estado da tela */
+function greet(){const h=new Date().getHours();return h<12?'Bom dia':h<18?'Boa tarde':'Boa noite'}
+function render(user){
+  const on=!!user;
+  $('land').hidden=on;$('dash').hidden=!on;$('logout').hidden=!on;$('who').hidden=!on;$('back').hidden=on;
+  if(on){
+    const nome=(user.user_metadata?.full_name||'').trim().split(' ')[0]||'cliente';
+    $('hello').textContent=`${greet()}, ${nome}!`;$('who').textContent=user.email;
+    /* futuro: se for cliente (tabela "clientes"), mostrar o painel completo aqui */
+  }
+}
+if(sb){sb.auth.getSession().then(({data})=>render(data.session?.user));sb.auth.onAuthStateChange((_,s)=>render(s?.user))}
+
+/* entrar */
+$('fin').onsubmit=async e=>{e.preventDefault();if(!sb)return;say('amsg','Entrando...');
+  const{error}=await sb.auth.signInWithPassword({email:$('li-e').value.trim(),password:$('li-s').value});
+  say('amsg',error?tr(error):'',error?'err':'')};
+$('forgot').onclick=async()=>{if(!sb)return;const m=$('li-e').value.trim();
+  if(!m)return say('amsg','Digite o seu e-mail acima primeiro.','err');
+  const{error}=await sb.auth.resetPasswordForEmail(m,{redirectTo:location.origin+'/suacord'});
+  say('amsg',error?tr(error):'Enviamos um link de redefinição para o seu e-mail.',error?'err':'ok')};
+
+/* criar conta */
+$('fup').onsubmit=async e=>{e.preventDefault();if(!sb)return;
+  const nome=$('su-n').value.trim(),tel=$('su-t').value.trim(),s=$('su-s').value;
+  if(nome.split(/\s+/).length<2)return say('amsg','Digite o nome completo.','err');
+  if(tel.replace(/\D/g,'').length<10)return say('amsg','Digite um telefone válido com DDD.','err');
+  if(s.length<6)return say('amsg','A senha precisa ter pelo menos 6 caracteres.','err');
+  if(s!==$('su-c').value)return say('amsg','As senhas não são iguais.','err');
+  say('amsg','Criando conta...');
+  const{data,error}=await sb.auth.signUp({email:$('su-e').value.trim(),password:s,options:{data:{full_name:nome,phone:tel},emailRedirectTo:location.origin+'/suacord'}});
+  if(error)return say('amsg',tr(error),'err');
+  say('amsg',data.session?'':'Conta criada! Confirme o seu e-mail para entrar.',data.session?'':'ok')};
+
+/* minha conta */
+$('fmail').onsubmit=async e=>{e.preventDefault();
+  const{error}=await sb.auth.updateUser({email:$('n-e').value.trim()});
+  say('dmsg',error?tr(error):'Enviamos um link de confirmação para o novo e-mail.',error?'err':'ok')};
+$('fpass').onsubmit=async e=>{e.preventDefault();const s=$('n-s').value;
+  if(s!==$('n-c').value)return say('dmsg','As senhas não são iguais.','err');
+  const{error}=await sb.auth.updateUser({password:s});
+  if(!error)e.target.reset();say('dmsg',error?tr(error):'Senha alterada.',error?'err':'ok')};
+$('del').onclick=async()=>{
+  if(!confirm('Apagar a sua conta de forma permanente? Isso não pode ser desfeito.'))return;
+  const{error}=await sb.rpc('delete_my_account');
+  if(error)return say('dmsg','Não foi possível apagar: '+error.message,'err');
+  await sb.auth.signOut()};
+$('logout').onclick=()=>sb.auth.signOut();
+</script>
+</body>
+</html>

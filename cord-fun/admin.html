@@ -1,0 +1,56 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="robots" content="noindex"><link rel="icon" href="/cord.png"><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono&display=swap" rel="stylesheet"><link rel="stylesheet" href="/style.css"><title>Admin, Cord</title></head><body>
+<div class="glow"></div>
+<main class="wrap" style="padding-top:40px">
+<div class="glass pay" id="lg"><h2>Admin</h2><form id="f"><label for="pw">Senha</label><input id="pw" type="password" autocomplete="off"><button class="btn btn-solid" style="width:100%;margin-top:16px">Entrar</button></form><div class="msg" id="lm"></div></div>
+<div id="ad" hidden>
+<h1>Painel admin</h1><div class="msg" id="m"></div>
+<div class="grid2">
+ <form class="glass" id="fp" style="padding:22px"><h3>Novo produto</h3><label>Nome</label><input id="pn" required><label>Valor (R$)</label><input id="pv" type="number" step="0.01" min="0.01" required><label>Descrição</label><input id="pd"><button class="btn btn-ghost" style="margin-top:16px">Criar produto</button></form>
+ <form class="glass" id="fi" style="padding:22px"><h3>Nova fatura</h3>
+  <label>Usuário</label><select id="iu" required></select><label>Produto (opcional, preenche valor)</label><select id="ip"></select>
+  <label>Descrição</label><input id="id" required><label>Valor (R$)</label><input id="iv" type="number" step="0.01" min="0.01" required>
+  <label>Primeiro vencimento</label><input id="ifd" type="date" required><label>Repetir por quantos meses (1 = fatura única)</label><input id="im" type="number" min="1" max="60" value="1">
+  <label>Cancelar automaticamente em (opcional)</label><input id="ic" type="date"><button class="btn btn-solid" style="width:100%;margin-top:16px">Criar fatura(s)</button></form></div>
+<div class="glass" style="padding:20px;margin-top:16px;overflow:auto"><h3>Usuários</h3><table id="tu"></table></div>
+<div class="glass" style="padding:20px;margin-top:16px;overflow:auto"><h3>Produtos</h3><table id="tp"></table></div>
+<form class="glass" id="fb" style="padding:22px;margin-top:16px"><h3>Novo post do blog</h3>
+ <div class="grid2"><div><label>Título</label><input id="bt" required maxlength="140"><label>Nome do autor</label><input id="ba" required maxlength="60"><label>Foto do autor</label><input id="bf" type="file" accept="image/*"><label>Imagem de capa</label><input id="bc" type="file" accept="image/*"></div>
+ <div><label>Descrição (texto do post; deixe uma linha em branco entre parágrafos)</label><textarea id="bd" required style="height:250px"></textarea></div></div>
+ <button class="btn btn-solid" style="margin-top:16px" id="bb">Publicar post</button></form>
+<div class="glass" style="padding:20px;margin-top:16px;overflow:auto"><h3>Posts</h3><table id="tb"></table></div>
+<div class="glass" style="padding:20px;margin:16px 0 60px;overflow:auto"><h3>Faturas</h3><table id="ti"></table></div>
+</div></main>
+<script>
+const $=id=>document.getElementById(id);let PW='',us=[],pr=[];
+const R=c=>(c/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const api=async b=>{const r=await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:PW,...b})});const j=await r.json();if(!r.ok)throw new Error(j.error||'Erro');return j};
+const cell=(t,v)=>{const e=document.createElement(t);e.textContent=v;return e};
+const fill=(id,head,rows)=>{const t=$(id);t.replaceChildren();const tr=document.createElement('tr');head.forEach(x=>tr.append(cell('th',x)));t.append(tr);rows.forEach(r=>{const q=document.createElement('tr');r.forEach(x=>q.append(cell('td',x??'')));t.append(q)})};
+const opt=(v,t)=>{const o=document.createElement('option');o.value=v;o.textContent=t;return o};
+const say=(t,c)=>{$('m').textContent=t;$('m').className='msg '+(c||'')};
+async function refresh(){loadPosts();
+ us=await api({action:'users'});pr=await api({action:'products'});const iv=await api({action:'invoices'});
+ const nm=id=>{const u=us.find(x=>x.id===id);return u?(u.name||u.email):id};
+ fill('tu',['Nome','E-mail','Telefone','Criado em'],us.map(u=>[u.name,u.email,u.phone,(u.created||'').slice(0,10)]));
+ fill('tp',['Produto','Valor','Descrição'],pr.map(p=>[p.name,R(p.price_cents),p.description]));
+ fill('ti',['Código','Cliente','Descrição','Valor','Vence','Status'],iv.map(i=>[i.code,nm(i.user_id),i.description,R(i.amount_cents),i.due_date.split('-').reverse().join('/'),i.status]));
+ $('iu').replaceChildren(...us.map(u=>opt(u.id,(u.name||'')+' <'+u.email+'>')));
+ $('ip').replaceChildren(opt('','Sem produto'),...pr.map(p=>opt(p.id,p.name)));
+}
+$('ip').onchange=()=>{const p=pr.find(x=>x.id===$('ip').value);if(p){$('id').value=p.name;$('iv').value=p.price_cents/100}};
+$('f').onsubmit=async e=>{e.preventDefault();PW=$('pw').value;try{await api({action:'ping'});$('lg').hidden=true;$('ad').hidden=false;await refresh()}catch(x){PW='';$('lm').textContent=x.message;$('lm').className='msg err'}};
+$('fp').onsubmit=async e=>{e.preventDefault();try{await api({action:'product_create',name:$('pn').value,description:$('pd').value,price_cents:Math.round($('pv').value*100)});e.target.reset();say('Produto criado.','ok');refresh()}catch(x){say(x.message,'err')}};
+$('fi').onsubmit=async e=>{e.preventDefault();try{const r=await api({action:'invoice_create',user_id:$('iu').value,product_id:$('ip').value||null,description:$('id').value,amount_cents:Math.round($('iv').value*100),first_due:$('ifd').value,months:$('im').value,cancel_at:$('ic').value||null});say(r.length+' fatura(s) criada(s).','ok');refresh()}catch(x){say(x.message,'err')}};
+
+const shrink=(f,max)=>new Promise((ok,no)=>{const i=new Image();i.onload=()=>{const k=Math.min(1,max/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=Math.round(i.width*k);c.height=Math.round(i.height*k);const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);x.drawImage(i,0,0,c.width,c.height);ok(c.toDataURL('image/jpeg',.85).split(',')[1])};i.onerror=()=>no(new Error('Imagem inválida.'));i.src=URL.createObjectURL(f)});
+const up=async(f,max)=>f?(await api({action:'upload',data:await shrink(f,max)})).url:null;
+async function loadPosts(){const p=await api({action:'posts'});const t=$('tb');t.replaceChildren();
+ const hd=document.createElement('tr');['Título','Autor','Data','Link',''].forEach(x=>hd.append(cell('th',x)));t.append(hd);
+ p.forEach(x=>{const q=document.createElement('tr');q.append(cell('td',x.title),cell('td',x.author_name),cell('td',x.created_at.slice(0,10).split('-').reverse().join('/')));
+  const a=document.createElement('td'),l=document.createElement('a');l.href='/blog/'+x.slug;l.target='_blank';l.textContent='/blog/'+x.slug;l.style.textDecoration='underline';a.append(l);
+  const d=document.createElement('td'),bt=document.createElement('button');bt.className='btn btn-danger';bt.textContent='Apagar';bt.onclick=async()=>{if(confirm('Apagar este post?')){await api({action:'post_delete',id:x.id});loadPosts()}};d.append(bt);q.append(a,d);t.append(q)})}
+$('fb').onsubmit=async e=>{e.preventDefault();const b=$('bb');b.disabled=true;say('Enviando imagens e publicando...');
+ try{const cover=await up($('bc').files[0],1400),photo=await up($('bf').files[0],256);
+  await api({action:'post_create',title:$('bt').value,description:$('bd').value,author_name:$('ba').value,cover_url:cover,author_photo:photo});
+  e.target.reset();say('Post publicado.','ok');loadPosts()}catch(x){say(x.message,'err')}b.disabled=false};
+</script></body></html>

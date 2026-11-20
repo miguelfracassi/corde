@@ -1,0 +1,41 @@
+<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="icon" href="/cord.png"><link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono&display=swap" rel="stylesheet"><link rel="stylesheet" href="/style.css"><title>Blog, Cord</title>
+<style>
+.bwrap{max-width:1180px;margin:0 auto;padding:0 24px 80px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+@media(max-width:1000px){.cards{grid-template-columns:repeat(2,1fr)}}@media(max-width:640px){.cards{grid-template-columns:1fr}}
+.pc{display:flex;flex-direction:column;overflow:hidden;transition:transform .25s,border-color .25s}.pc:hover{transform:translateY(-4px);border-color:rgba(255,255,255,.32)}
+.pc .cv{aspect-ratio:16/9;width:100%;object-fit:cover;background:rgba(255,255,255,.06);display:block}
+.pc .in{padding:20px 22px 22px;display:flex;flex-direction:column;gap:10px;flex:1}
+.pc h2{font-size:1.2rem;line-height:1.25}.pc p{margin:0;color:var(--muted);font-size:.93rem}
+.au{display:flex;align-items:center;gap:10px;font-size:.82rem;color:var(--muted);margin-top:auto;padding-top:6px}
+.au img,.au .ph{width:28px;height:28px;border-radius:50%;object-fit:cover;background:rgba(255,255,255,.15);flex:none}
+.art{max-width:760px;margin:0 auto}.art .cv{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:22px;margin:20px 0}
+.art h1{font-size:clamp(1.9rem,4.4vw,3rem);line-height:1.1}.art .au{font-size:.92rem;margin:18px 0 0}.art .au img,.art .au .ph{width:40px;height:40px}
+.art .tx p{font-size:1.05rem;line-height:1.75;color:#dcdcdc;margin:0 0 1.2em}
+</style></head><body>
+<div class="glow"></div>
+<nav class="top glass" style="max-width:1100px"><a href="/" class="brand"><img src="/logo.png" alt=""><span>Cord</span></a><span style="display:flex;gap:8px"><a class="btn btn-ghost" href="/blog">Blog</a><a class="btn btn-ghost" href="/">Voltar ao site</a></span></nav>
+<main class="bwrap" id="app"></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="/config.js"></script>
+<script>
+const sb=supabase.createClient(CORD.url,CORD.key),app=document.getElementById('app');
+const h=(t,a={},...c)=>{const e=document.createElement(t);for(const k in a)k==='class'?e.className=a[k]:e.setAttribute(k,a[k]);c.flat().forEach(x=>e.append(x));return e};
+const dt=s=>new Date(s).toLocaleDateString('pt-BR',{day:'2-digit',month:'long',year:'numeric'});
+const safe=u=>u&&u.startsWith('https://')?u:null;
+const author=p=>h('div',{class:'au'},safe(p.author_photo)?h('img',{src:p.author_photo,alt:'',loading:'lazy'}):h('span',{class:'ph'}),h('span',{},'Publicado por '+p.author_name+' · '+dt(p.created_at)));
+const cover=p=>safe(p.cover_url)?h('img',{class:'cv',src:p.cover_url,alt:p.title,loading:'lazy'}):h('div',{class:'cv'});
+async function list(){
+  document.title='Blog, Cord';
+  const{data,error}=await sb.from('posts').select('slug,title,description,cover_url,author_name,author_photo,created_at').order('created_at',{ascending:false});
+  if(error)return app.replaceChildren(h('p',{class:'err'},'Não foi possível carregar o blog.'));
+  app.replaceChildren(h('h1',{style:'font-size:clamp(2rem,4vw,3rem);margin:34px 0 8px'},'Blog'),h('p',{style:'color:var(--muted);margin:0 0 30px'},'Novidades e conteúdos da Cord.'),
+   data.length?h('div',{class:'cards'},data.map(p=>h('a',{class:'glass pc',href:'/blog/'+p.slug},cover(p),h('div',{class:'in'},h('h2',{},p.title),h('p',{},p.description.replace(/\s+/g,' ').slice(0,150)+(p.description.length>150?'…':'')),author(p))))):h('p',{style:'color:var(--muted)'},'Ainda não há posts.'))}
+async function post(slug){
+  const{data}=await sb.from('posts').select('*').eq('slug',slug).maybeSingle();
+  if(!data)return app.replaceChildren(h('div',{class:'art',style:'padding-top:40px'},h('h1',{},'Post não encontrado'),h('p',{},h('a',{href:'/blog',style:'text-decoration:underline'},'Voltar ao blog'))));
+  document.title=data.title+', Cord';
+  const m=document.querySelector('meta[name=description]')||document.head.appendChild(h('meta',{name:'description'}));m.content=data.description.replace(/\s+/g,' ').slice(0,155);
+  app.replaceChildren(h('article',{class:'art',style:'padding-top:30px'},h('a',{href:'/blog',style:'color:var(--muted)'},'← Blog'),h('h1',{style:'margin-top:14px'},data.title),author(data),cover(data),h('div',{class:'tx'},data.description.split(/\n\s*\n/).map(t=>h('p',{},t.trim())))))}
+const s=location.pathname.replace(/^\/blog\/?/,'');s?post(decodeURIComponent(s)):list();
+</script></body></html>
